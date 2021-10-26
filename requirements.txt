@@ -1,0 +1,4 @@
+requirements.txt
+
+git@github.com:Pycord-Development/pycord.git
+jishaku==2.0.0
