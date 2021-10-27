@@ -3,8 +3,14 @@ from json import load
 from datetime import datetime
 from os import environ
 
+from discord.commands import slash_command, Option
+from views import ReplyButtonView
+
 import logging
 import discord
+
+environ["JISHAKU_NO_UNDERSCORE"] = "True"
+environ["JISHAKU_NO_DM_TRACEBACK"] = "True"
 
 with open("config.json") as f:
     logging.basicConfig(level=logging.INFO)
@@ -22,7 +28,9 @@ class Client(commands.Bot):
             allowed_mentions = discord.AllowedMentions(everyone=False, users=True, roles=True, replied_user=True),
             strip_after_prefix = True
         )
-        self.load_extension("jishaku")
+        for ext_name in ("jishaku", "fun"):
+            self.load_extension(ext_name)
+        
         self.version = "1.0"
         self.debug_channel = 0
         self.log = logging.getLogger()
@@ -53,7 +61,31 @@ class Client(commands.Bot):
     async def close(self):
         return await super().close()
 
+# Initiate Client object here
+Client = Client()
+
+@Client.slash_command()
+async def reply(
+    ctx,
+    body: Option(str, description = "Reply text", required = True),
+    target: Option(discord.Member, description = "Whom are you replying to? tag them", required = True),
+    reply_message_id: Option(str, description = "The ID of the message you are replying in respect of, this one is optional", required = False)
+):
+    text = body
+    target_user = target
+    reply_message = await ctx.channel.fetch_message(reply_message_id)
+    view = ReplyButtonView(text, ctx.user, target_user, reply_message)
+
+    await ctx.channel.send(
+        "{}, someone has a privately replied to you!".format(target_user.mention), 
+        view = view
+    )
+    await ctx.respond("Reply successfully sent!", ephemeral = True)
+
+# This is a test slash command
+@Client.slash_command()
+async def laptop(ctx, option = Option(str)):
+    await ctx.respond("Result: {}".format(ctx.message))
+
 if __name__ == "__main__":
-    environ["JISHAKU_NO_UNDERSCORE"] = "True"
-    environ["JISHAKU_NO_DM_TRACEBACK"] = "True"
-    Client().run(BOT_TOKEN, reconnect = True)
+    Client.run(BOT_TOKEN, reconnect = True)
