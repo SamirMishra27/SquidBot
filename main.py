@@ -4,7 +4,7 @@ from datetime import datetime
 from os import environ
 
 from discord.commands import slash_command, Option
-from views import ReplyButtonView, laptop_json
+from views import ReplyButtonView
 
 import logging
 import discord

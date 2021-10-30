@@ -23,7 +23,7 @@ ffmpeg_options = {"options": "-vn"}
 ytdl = youtube_dl.YoutubeDL(ytdl_format_options)
 
 class YTDLSource(discord.PCMVolumeTransformer):
-    def __init__(self, source, *, data, volume = 0.3): # 0.5 0.8
+    def __init__(self, source, *, data, volume = 0.5): 
         super().__init__(source, volume)
 
         self.data = data
@@ -58,6 +58,7 @@ class Music(commands.Cog):
 
     @commands.command()
     async def yt(self, ctx, *, url):
+        # WARNING: This command downloads Youtube audio in the current directory, do not run this command.
         async with ctx.typing():
             player = await YTDLSource.from_url(url, loop=self.bot.loop)
             ctx.voice_client.play(
@@ -67,6 +68,9 @@ class Music(commands.Cog):
 
     @commands.command()
     async def play(self, ctx, *, query):
+        # Don't run this command either, this command plays music from your local computer
+        # so its useless and yes based on my experiments the quality of music was still 
+        # the same with pre-downloaded music.
         source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(query))
 
         ctx.voice_client.play(source, after = lambda e: print(f"Player error: {e}") if e else None)
@@ -75,6 +79,9 @@ class Music(commands.Cog):
 
     @commands.command()
     async def stream(self, ctx, *, url):
+        # This supports taking string arguement as well
+        # e.g `s.play Marshmello - happier` will work too
+        # I guess it fetches the first results from the API
         async with ctx.typing():
             player = await YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
             ctx.voice_client.play(
@@ -88,6 +95,7 @@ class Music(commands.Cog):
         await ctx.voice_client.disconnect()
 
     @play.before_invoke
+    @stream.before_invoke
     async def ensure_voice_is_connected(self, ctx):
         if ctx.voice_client is None:
 
@@ -96,7 +104,7 @@ class Music(commands.Cog):
 
             else:
                 await ctx.send("Join a voice channel first dumbass.")
-                raise commands.CommandError
+                raise commands.CommandError()
 
         elif ctx.voice_client.is_playing():
             ctx.voice_client.stop()
