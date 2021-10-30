@@ -4,11 +4,12 @@ from datetime import datetime
 from os import environ
 
 from discord.commands import slash_command, Option
-from views import ReplyButtonView
+from views import ReplyButtonView, laptop_json
 
 import logging
 import discord
 
+# Setting up variable for jishaku's cog purposes
 environ["JISHAKU_NO_UNDERSCORE"] = "True"
 environ["JISHAKU_NO_DM_TRACEBACK"] = "True"
 
@@ -18,17 +19,22 @@ with open("config.json") as f:
     BOT_TOKEN = config["BOT_TOKEN"]
     BOT_PREFIX = config["PREFIX"]
 
+def get_prefix(bot, message: discord.Message):
+    bot_id = bot.user.id
+    return (f'<@{bot_id}> ', f'<@!{bot_id}> ', BOT_PREFIX, "S.")
+
 class Client(commands.Bot):
     def __init__(self):
         super().__init__(
-            command_prefix = BOT_PREFIX,
+            command_prefix = get_prefix,
             case_insensitive = True,
             intents = discord.Intents.all(),
             self_bot = False,
             allowed_mentions = discord.AllowedMentions(everyone=False, users=True, roles=True, replied_user=True),
             strip_after_prefix = True
         )
-        for ext_name in ("jishaku", "fun"):
+        self.has_started = False
+        for ext_name in ("jishaku", "fun", "events", "owner", "music"):
             self.load_extension(ext_name)
         
         self.version = "1.0"
@@ -45,6 +51,7 @@ class Client(commands.Bot):
         return BOT_PREFIX
 
     async def on_ready(self):
+        self.has_started = True
         print("\n\nWe have successfully logged in as {0.user} \n".format(self) +\
                 "Pycord Alpha version info: {}\n".format(discord.version_info) +\
                 "Pycord Alpha version: {}\n".format(discord.__version__))
@@ -64,7 +71,7 @@ class Client(commands.Bot):
 # Initiate Client object here
 Client = Client()
 
-@Client.slash_command()
+@Client.slash_command(guild_ids = [902643456260841553])
 async def reply(
     ctx,
     body: Option(str, description = "Reply text", required = True),
@@ -83,7 +90,7 @@ async def reply(
     await ctx.respond("Reply successfully sent!", ephemeral = True)
 
 # This is a test slash command
-@Client.slash_command()
+@Client.slash_command(guild_ids = [902643456260841553])
 async def laptop(ctx, option = Option(str)):
     await ctx.respond("Result: {}".format(ctx.message))
 
