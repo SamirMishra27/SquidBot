@@ -22,23 +22,3 @@ class ReplyButtonView(View):
         if self.reply_message != None:
             content += "**They replied to this message:** \n>>> {}".format(self.reply_message.content)
         await interaction.response.send_message(content = content, ephemeral = True)
-
-laptop_json = {
-    "name": "laptop",
-    "type": 1,
-    "description": "Says hello back!",
-    "options": [
-        {
-            "name": "number",
-            "description": "a number.",
-            "type": 4,
-            "required": True
-        },
-        {
-            "name": "text",
-            "description": "additional text.",
-            "type": 3,
-            "required": False
-        }
-    ]
-}
