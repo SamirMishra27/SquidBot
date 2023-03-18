@@ -67,7 +67,7 @@ class Client(commands.Bot):
         print(
             "\n\nWe have successfully logged in as {0.user} \n".format(self) +\
             "Disnake version info: {}\n".format(disnake.version_info) +\
-            "Disanke version: {}\n".format(disnake.__version__)
+            "Disnake version: {}\n".format(disnake.__version__)
         )
 
     @property

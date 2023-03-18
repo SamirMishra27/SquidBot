@@ -1,5 +1,0 @@
-{
-    "PREFIX" : "Write prefix here.",
-    "BOT_TOKEN" : "Put the bot's token here.",
-    "BOT_CLIENT_SECRET": "Put the bot's secret here."
-}
