@@ -26,7 +26,7 @@ INTENTS.presences = False
 
 def get_prefix(bot, message: disnake.Message):
     bot_id = bot.user.id
-    return (f'<@{bot_id}> ', f'<@!{bot_id}> ', BOT_PREFIX, "S.")
+    return (f'<@{bot_id}> ', f'<@!{bot_id}> ', BOT_PREFIX, "S.", "s.", "abe", "squid")
 
 class Client(commands.Bot):
 
@@ -39,7 +39,8 @@ class Client(commands.Bot):
             intents = INTENTS,
             allowed_mentions = disnake.AllowedMentions(everyone=False, users=True, roles=True, replied_user=True),
 
-            self_bot = False,
+            # self_bot = False,
+            owner_id = 278094147901194242,
             reload = True ,
             max_messages = 50
         )
@@ -97,9 +98,10 @@ class Client(commands.Bot):
     async def on_command_error(self, context, exception):
         if isinstance(exception, CustomVoiceError):
             return await context.send(exception)
+        
+        if context.author.id == self.owner_id:
+            await context.send(exception.__traceback__.__class__)
         return await super().on_command_error(context, exception)
 
 if __name__ == "__main__":
-    # keep_alive()
-    # BOT_TOKEN = environ['BOT_TOKEN']
     Client().run(BOT_TOKEN, reconnect = True)

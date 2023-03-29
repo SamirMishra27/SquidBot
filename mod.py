@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 from json import dump, load
 from time import time
 from utils import CustomContext
+from typing import Union
 
 with open("tasks.json") as f:
     role_tasks = load(f)
@@ -46,9 +47,9 @@ class Moderation(commands.Cog):
     async def _before(self):
         await self.bot.wait_until_ready()
 
-    @update_tasks.after_loop
-    async def _after(self):
-        self.update_tasks.restart()
+    # @update_tasks.after_loop
+    # async def _after(self):
+    #     self.update_tasks.restart()
 
     @commands.Cog.listener("on_message")
     async def on_message(self, message: Message):
@@ -73,20 +74,22 @@ class Moderation(commands.Cog):
 
     @commands.command()
     @commands.has_guild_permissions(moderate_members = True)
-    async def mute(self, ctx: CustomContext, member: Member = None, duration: str = None):
+    async def mute(self, ctx: CustomContext, member: Union[Member, str] = None, duration: str = None):
         types = {'s': '1', 'm': '60', 'h': '3600', 'd': '86400', 'w': '604800'}
 
-        if duration == None:
-            duration = "10m"
-        if member == None:
-            if ctx.message.reference is not None:
-                try:
-                    reply_message = await ctx.channel.fetch_message(ctx.message.reference.message_id)
-                    member = reply_message.author
-                except Exception:
-                    pass
-        if member == None:
-            raise commands.TooManyArguments()
+        if isinstance(member, Member) and isinstance(duration, (str, type(None))):
+            if not duration:
+                duration = "10m"
+        
+        elif isinstance(member, (str, type(None))) and ctx.message.reference is not None:
+            if not duration:
+                duration = member or "10m"
+
+            reply_message = await ctx.channel.fetch_message(ctx.message.reference.message_id)
+            member = reply_message.author
+
+        else:
+            raise commands.BadArgument()
 
         for word in duration:
             if word.lower() in types:
@@ -105,7 +108,15 @@ class Moderation(commands.Cog):
 
     @commands.command()
     @commands.has_guild_permissions(moderate_members = True)
-    async def unmute(self, ctx, member: Member):
+    async def unmute(self, ctx, member: Member = None):
+
+        if member == None and ctx.message.reference is not None:
+            reply_message = await ctx.channel.fetch_message(ctx.message.reference.message_id)
+            member = reply_message.author
+
+        if member == None:
+            raise commands.TooManyArguments()
+
         await member.timeout(until = None)
         await ctx.send("👌")
 

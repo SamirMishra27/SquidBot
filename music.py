@@ -1,7 +1,7 @@
 from disnake import Embed, Colour, VoiceRegion, Member
 from disnake.ext import commands
 
-from utils import CustomVoiceError, minutes, membership
+from utils import CustomVoiceError, minutes, membership, CustomContext
 
 from asyncio import sleep as asyncio_sleep
 from textwrap import shorten
@@ -248,14 +248,21 @@ class Music(commands.Cog):
             return
 
         await wavelink.NodePool.create_node(
-            # host = '127.0.0.1',
-            # port = 1900,
-            bot = self.bot,
-            host = 'lava.link',
-            port = 80,
+            host = '127.0.0.1',
+            port = 1900,
             password = 'youshallnotpass',
-            region = VoiceRegion.india
+            bot = self.bot,
+            region = "india"
         )
+
+    @commands.command()
+    async def clearnodes(self, ctx: CustomContext):
+        if ctx.author.id != 278094147901194242:
+            return
+        for node in list( wavelink.NodePool().nodes.values() ):
+            await node.disconnect()
+        wavelink.NodePool().nodes.clear()
+        await ctx.react("✅")
 
     @commands.Cog.listener()
     async def on_wavelink_node_ready(self, node: wavelink.Node):
