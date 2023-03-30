@@ -91,6 +91,9 @@ class Moderation(commands.Cog):
         else:
             raise commands.BadArgument()
 
+        if member.top_role >= ctx.guild.me.top_role:
+            return await ctx.send("Not enough permissions 🗿")
+
         for word in duration:
             if word.lower() in types:
                 duration = duration.replace(word, "*" + types[word] + "+")
@@ -105,6 +108,39 @@ class Moderation(commands.Cog):
         future_date = datetime.now() + delta
         await member.timeout(until = future_date)
         await ctx.send("👌")
+
+    @commands.command(aliases = ["mm"])
+    @commands.has_guild_permissions(moderate_members = True)
+    async def massmute(self, ctx: CustomContext, members: commands.Greedy[Member], duration: str = None):
+        types = {'s': '1', 'm': '60', 'h': '3600', 'd': '86400', 'w': '604800'}
+        success_members = []
+        failed_members = []
+
+        if not duration:
+            duration = "10m"
+
+        for word in duration:
+            if word.lower() in types:
+                duration = duration.replace(word, "*" + types[word] + "+")
+                # 2h -> 2*3600 -> int()
+        duration = duration.rstrip("+")
+        future_date = datetime.now() + timedelta(seconds = eval(duration))
+
+        for member in members:
+            if member.top_role >= ctx.guild.me.top_role:
+                failed_members.append(member.name)
+                continue
+
+            await member.timeout(until = future_date)
+            success_members.append(member.name)
+
+        message = ""
+        if success_members:
+            message += "👌 Muted " + ", ".join([name for name in success_members])
+
+        if failed_members:
+            message += "\n👎 Failed to mute " + ", ".join([name for name in failed_members])
+        await ctx.send(message)
 
     @commands.command()
     @commands.has_guild_permissions(moderate_members = True)
