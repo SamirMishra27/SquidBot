@@ -1,5 +1,16 @@
 {
+    "STAGE": "TEST",
     "PREFIX" : "Write prefix here.",
-    "BOT_TOKEN" : "Put the bot's token here.",
+    
+    "LAVALINK_HOST_PROD": "Lavalink server host link",
+    "LAVALINK_PORT_PROD": "Lavalink server port",
+    "LAVALINK_PWD_PROD": "Lavalink server password",
+
+    "LAVALINK_HOST_BETA": "Lavalink server host link",
+    "LAVALINK_PORT_BETA": "Lavalink server port",
+    "LAVALINK_PWD_BETA": "Lavalink server password",
+
+    "BOT_TOKEN_BETA" : "Put the bot's token here.",
+    "BOT_TOKEN_PROD" : "Put the bot's token here.",
     "BOT_CLIENT_SECRET": "Put the bot's secret here."
 }

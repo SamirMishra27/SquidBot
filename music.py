@@ -6,6 +6,7 @@ from utils import CustomVoiceError, minutes, membership, CustomContext
 from asyncio import sleep as asyncio_sleep
 from textwrap import shorten
 from math import ceil
+from json import load
 # from bs4 import BeautifulSoup
 
 from youtubesearchpython import VideosSearch
@@ -236,6 +237,13 @@ class Music(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
+        
+        with open("config.json") as f:
+            config = load(f)
+            stage = config["STAGE"]
+            self.LAVALINK_HOST = config["LAVALINK_HOST_" + stage] or '127.0.0.1'
+            self.LAVALINK_PORT = config["LAVALINK_PORT_" + stage] or 1900
+            self.LAVALINK_PWD = config["LAVALINK_PWD_" + stage] or 'youshallnotpass'
 
     async def cog_load(self) -> None:
         self.bot.loop.create_task(self.connect_nodes())
@@ -248,9 +256,9 @@ class Music(commands.Cog):
             return
 
         await wavelink.NodePool.create_node(
-            host = '127.0.0.1',
-            port = 1900,
-            password = 'youshallnotpass',
+            host = self.LAVALINK_HOST,
+            port = self.LAVALINK_PORT,
+            password = self.LAVALINK_PWD,
             bot = self.bot,
             region = "india"
         )

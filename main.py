@@ -18,7 +18,8 @@ environ["JISHAKU_NO_DM_TRACEBACK"] = "True"
 with open("config.json") as f:
     logging.basicConfig(level=logging.INFO)
     config = load(f)
-    BOT_TOKEN = config["BOT_TOKEN"]
+    stage = config["STAGE"]
+    BOT_TOKEN = config["BOT_TOKEN_" + stage]
     BOT_PREFIX = config["PREFIX"]
 
 INTENTS = disnake.Intents.all()
