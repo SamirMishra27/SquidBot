@@ -1,6 +1,7 @@
 # Custom files to ignore
 config.json
 tasks.json
+reports.json
 
 application.yml
 

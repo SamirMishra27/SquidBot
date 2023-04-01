@@ -9,17 +9,26 @@ from time import time
 from utils import CustomContext
 from typing import Union
 
+REPORT_EXPIRY_TIME = 50 * 60
 with open("tasks.json") as f:
     role_tasks = load(f)
 
 class Moderation(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.tasks = role_tasks
         self.update_tasks.start()
+        
+        with open("reports.json") as f:
+            self.reports = load(f)
 
     def cog_unload(self) -> None:
         self.update_tasks.stop()
+
+        with open("tasks.json", "w") as f:
+            dump(self.tasks, f, indent = 4)
+        with open("reports.json", "w") as f:
+            dump(self.reports, f, indent = 4)
 
     @tasks.loop(minutes = 1)
     async def update_tasks(self):
@@ -44,12 +53,18 @@ class Moderation(commands.Cog):
                 dump(self.tasks, f, indent = 4)
 
     @update_tasks.before_loop
-    async def _before(self):
+    async def _before_tasks(self):
         await self.bot.wait_until_ready()
 
-    # @update_tasks.after_loop
-    # async def _after(self):
-    #     self.update_tasks.restart()
+    @tasks.loop(minutes = 10)
+    async def update_reports(self):
+        with open("reports.json") as f:
+            dump(self.reports, f, indent = 4)
+        print("Dumped all member reports in .json file")
+
+    @update_reports.before_loop
+    async def _before_reports(self):
+        await self.bot.wait_until_ready()
 
     @commands.Cog.listener("on_message")
     async def on_message(self, message: Message):
@@ -214,6 +229,48 @@ class Moderation(commands.Cog):
     async def syncpermissions(self, ctx: CustomContext):
         await ctx.channel.edit(sync_permissions=True)
         await ctx.react("✅")
+
+    def update_member_reports(self, member_reports):
+
+        curr_time = time()
+        for report in member_reports:
+            if curr_time - report["timestamp"] > REPORT_EXPIRY_TIME:
+                member_reports.remove(report)
+
+        print("Updated member report")
+        return member_reports
+
+    @commands.command()
+    @commands.guild_only()
+    async def report(self, ctx: CustomContext, member: Member = None):
+        REPORT_MUTE_DURATION = 30 * 60
+
+        if not member and not ctx.message.reference:
+            return await ctx.send("Whom are you reporting? 🗿")
+        
+        if ctx.message.reference and not member:
+            reply_message = await ctx.channel.fetch_message(ctx.message.reference.message_id)
+            member = reply_message.author
+
+        reports = self.reports[str(ctx.guild.id)]
+        member_reports = reports.get(str(member.id), [])
+
+        member_reports = self.update_member_reports(member_reports)
+        for report in member_reports:
+            if report["user_id"] == ctx.author.id:
+                return await ctx.send("You can't report twice")
+            
+        member_reports.append({
+            "user_id": ctx.author.id,
+            "timestamp": time()
+        })
+        await ctx.react("✅")
+        if len(member_reports) >= 5:
+            await member.timeout(duration = REPORT_MUTE_DURATION)
+            await ctx.send(f"**{member.name}** was muted after {5} reports! 🔇")
+            member_reports.clear()
+
+        reports[str(member.id)] = member_reports
 
 def setup(bot):
     bot.add_cog(Moderation(bot))
