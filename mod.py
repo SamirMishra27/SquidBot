@@ -60,7 +60,6 @@ class Moderation(commands.Cog):
     async def update_reports(self):
         with open("reports.json") as f:
             dump(self.reports, f, indent = 4)
-        print("Dumped all member reports in .json file")
 
     @update_reports.before_loop
     async def _before_reports(self):
@@ -237,13 +236,14 @@ class Moderation(commands.Cog):
             if curr_time - report["timestamp"] > REPORT_EXPIRY_TIME:
                 member_reports.remove(report)
 
-        print("Updated member report")
         return member_reports
 
     @commands.command()
     @commands.guild_only()
     async def report(self, ctx: CustomContext, member: Member = None):
         REPORT_MUTE_DURATION = 30 * 60
+        # MAX_REPORTS_FOR_MUTE = 5
+        MAX_REPORTS_FOR_MUTE = 2
 
         if not member and not ctx.message.reference:
             return await ctx.send("Whom are you reporting? 🗿")
@@ -251,6 +251,9 @@ class Moderation(commands.Cog):
         if ctx.message.reference and not member:
             reply_message = await ctx.channel.fetch_message(ctx.message.reference.message_id)
             member = reply_message.author
+
+        if member.current_timeout:
+            return await ctx.send("Can't report a muted member")
 
         reports = self.reports[str(ctx.guild.id)]
         member_reports = reports.get(str(member.id), [])
@@ -265,12 +268,16 @@ class Moderation(commands.Cog):
             "timestamp": time()
         })
         await ctx.react("✅")
-        if len(member_reports) >= 5:
-            await member.timeout(duration = REPORT_MUTE_DURATION)
-            await ctx.send(f"**{member.name}** was muted after {5} reports! 🔇")
-            member_reports.clear()
+        if len(member_reports) >= MAX_REPORTS_FOR_MUTE:
 
-        reports[str(member.id)] = member_reports
+            try: await member.timeout(duration = REPORT_MUTE_DURATION)
+            except Exception as e: pass
+
+            await ctx.send(f"**{member.name}** was muted after {MAX_REPORTS_FOR_MUTE} reports! 🔇")
+            reports.pop(str(member.id))
+
+        else:
+            reports[str(member.id)] = member_reports
 
 def setup(bot):
     bot.add_cog(Moderation(bot))
