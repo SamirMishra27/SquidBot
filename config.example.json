@@ -1,6 +1,7 @@
 {
     "STAGE": "TEST",
-    "PREFIX" : "Write prefix here.",
+    "PREFIX_PROD": "Write prefix here.",
+    "PREFIX_BETA": "Write prefix here.",
     
     "LAVALINK_HOST_PROD": "Lavalink server host link",
     "LAVALINK_PORT_PROD": "Lavalink server port",

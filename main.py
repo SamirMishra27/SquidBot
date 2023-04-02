@@ -16,14 +16,13 @@ environ["JISHAKU_NO_UNDERSCORE"] = "True"
 environ["JISHAKU_NO_DM_TRACEBACK"] = "True"
 
 with open("config.json") as f:
-    logging.basicConfig(level=logging.INFO)
     config = load(f)
     stage = config["STAGE"]
+
     BOT_TOKEN = config["BOT_TOKEN_" + stage]
-    BOT_PREFIX = config["PREFIX"]
+    BOT_PREFIX = config["PREFIX_" + stage]
 
 INTENTS = disnake.Intents.all()
-INTENTS.presences = False
 
 def get_prefix(bot, message: disnake.Message):
     bot_id = bot.user.id
