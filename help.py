@@ -1,6 +1,7 @@
 from disnake.ext import commands
 from disnake import Embed, Colour
 from datetime import datetime
+from utils import emojis
 
 class CustomHelpCommand(commands.DefaultHelpCommand):
     def __init__(self):
@@ -32,14 +33,9 @@ class CustomHelpCommand(commands.DefaultHelpCommand):
                 inline = False
             )
 
-        # slash_list = ""
-        # for command in commands:
-        #     slash_list += "**/**{}\n".format(command.name)
-        # embed.add_field(name = "Slash Commands", value = slash_list)  
-
         embed.description = (
-            "Hi, I am Squid. {}\n".format(bot._emojis["sw"]) + \
-            "Yell at <@278094147901194242> for things related to this bot.\n" 
+            f"Hi I am Squid {emojis.sw}\n"
+            f"Yell at <@278094147901194242> for things related to this bot.\n"
         )
         avatar = self.context.author.display_avatar
 

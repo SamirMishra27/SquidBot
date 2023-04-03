@@ -41,7 +41,7 @@ class Client(commands.Bot):
 
             # self_bot = False,
             owner_id = 278094147901194242,
-            reload = True ,
+            reload = True,
             max_messages = 50
         )
         self.has_started = False
@@ -58,10 +58,6 @@ class Client(commands.Bot):
         self.launched_at = None
         self.last_message_cache = {}
         self.session = ClientSession()
-
-        self._emojis = {
-            "sw": "<:squidward:903739325857013760>"
-        }
         
     async def on_ready(self):
         self.has_started = True

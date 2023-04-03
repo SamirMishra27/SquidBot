@@ -1,7 +1,7 @@
 from disnake import Embed, Colour, VoiceRegion, Member
 from disnake.ext import commands
 
-from utils import CustomVoiceError, minutes, membership, CustomContext
+from utils import CustomVoiceError, minutes, membership, CustomContext, emojis
 
 from asyncio import sleep as asyncio_sleep
 from textwrap import shorten
@@ -338,10 +338,10 @@ class Music(commands.Cog):
             # If playing a song already then put this to queue
 
             if voice_channel.track.identifier == track.identifier:
-                return await ctx.send("This song is already being played! {}".format(self.bot._emojis["sw"]))
+                return await ctx.send(f"This song is already being played! {emojis.sw}")
 
             if membership(track, voice_channel.queue._queue):
-                return await ctx.send("Song is already in queue. {}".format(self.bot._emojis["sw"]))
+                return await ctx.send(f"Song is already in queue. {emojis.sw}")
 
             voice_channel.queue.put(track)
 
@@ -471,9 +471,7 @@ class Music(commands.Cog):
 
     @commands.command(aliases = ['clear'])
     async def queueclear(self, ctx):
-        await ctx.send(
-            "This action cannot be undone. Are you sure you want to clear the entire queue?" + \
-            " {} [yes / no]".format(self.bot._emojis["sw"]))
+        await ctx.send(f"This action cannot be undone. Are you sure you want to clear the entire queue? {emojis.sw} [yes / no]")
         try:
             check = lambda x: x.author.id == ctx.author.id and x.channel.id == ctx.channel.id and x.content.lower() in ('yes','no')
             message = await self.bot.wait_for('message', timeout = 30, check = check)
@@ -512,8 +510,6 @@ class Music(commands.Cog):
 
     @commands.command()
     async def player(self, ctx):
-        # if ctx.author.id not in self.bot.owner_ids:
-        #     raise commands.NotOwner("This command is work in progress!{}".format(self.bot._emojis["sw"]), )
         
         view = MusicPlayer(player = ctx.voice_client, bot = self.bot)  
         ctx.voice_client.visualiser = view

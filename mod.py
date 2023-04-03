@@ -242,8 +242,7 @@ class Moderation(commands.Cog):
     @commands.guild_only()
     async def report(self, ctx: CustomContext, member: Member = None):
         REPORT_MUTE_DURATION = 30 * 60
-        # MAX_REPORTS_FOR_MUTE = 5
-        MAX_REPORTS_FOR_MUTE = 2
+        MAX_REPORTS_FOR_MUTE = 5
 
         if not member and not ctx.message.reference:
             return await ctx.send("Whom are you reporting? 🗿")
