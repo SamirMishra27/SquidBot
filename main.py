@@ -39,7 +39,6 @@ class Client(commands.Bot):
             intents = INTENTS,
             allowed_mentions = disnake.AllowedMentions(everyone=False, users=True, roles=True, replied_user=True),
 
-            # self_bot = False,
             owner_id = 278094147901194242,
             reload = True,
             max_messages = 50

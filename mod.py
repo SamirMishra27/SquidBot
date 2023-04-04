@@ -6,7 +6,7 @@ from disnake import Member, Message, Role, TextChannel, PermissionOverwrite
 from datetime import datetime, timedelta
 from json import dump, load
 from time import time
-from utils import CustomContext
+from utils import CustomContext, emojis
 from typing import Union
 
 REPORT_EXPIRY_TIME = 50 * 60
@@ -176,23 +176,55 @@ class Moderation(commands.Cog):
         await ctx.channel.edit(slowmode_delay = slowmode)
         await ctx.react("👌")
 
-    # @commands.command()
-    # @commands.has_guild_permissions(manage_guild = True)
-    # async def lockdown(self, ctx: CustomContext, channels: commands.Greedy[TextChannel]):
-    #     try:
-    #         locked = ""
-    #         perm_overwrite = PermissionOverwrite(send_messages = False)
+    @commands.command(aliases = ["lk", "lockdown"])
+    @commands.has_guild_permissions(manage_guild = True)
+    async def lock(self, ctx: CustomContext, channels: commands.Greedy[TextChannel]):
+        locked_channels = ""
+        failed_to_lock = ""
+        message = None
 
-    #         everyone = ctx.guild.default_role
-    #         players_role = ctx.guild.get_role(794976763973074964)
+        if not channels:
+            channels.append(ctx.channel)
 
-    #         for channel in channels:
-    #             await channel.edit(overwrites = {everyone: perm_overwrite, players_role: perm_overwrite})
-    #             locked += channel.mention + ' '
-                
-    #         await ctx.send(f'Locked down the following channels: {locked} 🚨')
-    #     except Exception as e:
-    #         await ctx.send(f'{format_exception(e, e, e.__traceback__)}')
+        if len(channels) > 1:
+            message = await ctx.send(f"Locking channels {emojis.fro}")
+
+        for channel in channels:
+            channel_overwrites = channel.overwrites
+
+            everyone_perm_overwrite = channel_overwrites.get(
+                ctx.guild.default_role,
+                PermissionOverwrite()
+            )
+            bot_perm_overwrite = channel_overwrites.get(
+                ctx.guild.me, PermissionOverwrite()
+            )
+            bot_perm_overwrite.send_messages = True
+            everyone_perm_overwrite.send_messages = False
+
+            channel_overwrites.update({
+                ctx.guild.me: bot_perm_overwrite,
+                ctx.guild.default_role: everyone_perm_overwrite
+            })
+            try:
+                await channel.edit(overwrites = channel_overwrites)
+                locked_channels += channel.mention + ' '
+            except Exception as e:
+                print_exception(e,e,e.__traceback__)
+                failed_to_lock += channel.mention + ' '
+
+        if message:
+            if locked_channels:
+                response = f"Locked the following channels ➡️ {locked_channels} ✅\n"
+            if failed_to_lock:
+                response += f"Failed to lock the following channels ➡️ {failed_to_lock} ❌"
+            await message.edit(response)
+
+        elif not message and failed_to_lock:
+            await ctx.send(f"Failed to lock {failed_to_lock} ❌")
+
+        else:
+            await ctx.react("✅")
 
     @commands.command()
     @commands.has_guild_permissions(manage_roles = True)
@@ -223,7 +255,7 @@ class Moderation(commands.Cog):
             to_send += f"\nThese users already have the specified role: \n```py\n{already_list}```"
         await ctx.send(to_send)
     
-    @commands.command()
+    @commands.command(aliases = ["sync"])
     @commands.has_guild_permissions(manage_channels = True)
     async def syncpermissions(self, ctx: CustomContext):
         await ctx.channel.edit(sync_permissions=True)
