@@ -227,6 +227,20 @@ class Moderation(commands.Cog):
             await ctx.react("✅")
 
     @commands.command()
+    @commands.has_guild_permissions(manage_guild = True)
+    async def unlock(self, ctx: CustomContext, channels: commands.Greedy[TextChannel]):
+        everyone_perm_overwrite = channels[0].overwrites.get(
+            ctx.guild.default_role,
+            PermissionOverwrite()
+        )
+        everyone_perm_overwrite.send_messages = True
+
+        channels[0].overwrites.update({
+            ctx.guild.default_role: everyone_perm_overwrite
+        })
+        await channels[0].edit(overwrites = channels[0].overwrites)
+
+    @commands.command()
     @commands.has_guild_permissions(manage_roles = True)
     async def massrole(self, ctx: CustomContext, role: Role, members: commands.Greedy[Member]):
         if ctx.author.id not in (830132607097896970, 278094147901194242):
