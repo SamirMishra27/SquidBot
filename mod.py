@@ -226,19 +226,55 @@ class Moderation(commands.Cog):
         else:
             await ctx.react("✅")
 
-    @commands.command()
+    @commands.command(aliases = ["ulk"])
     @commands.has_guild_permissions(manage_guild = True)
     async def unlock(self, ctx: CustomContext, channels: commands.Greedy[TextChannel]):
-        everyone_perm_overwrite = channels[0].overwrites.get(
-            ctx.guild.default_role,
-            PermissionOverwrite()
-        )
-        everyone_perm_overwrite.send_messages = True
+        unlocked_channels = ""
+        failed_to_unlock = ""
+        message = None
 
-        channels[0].overwrites.update({
-            ctx.guild.default_role: everyone_perm_overwrite
-        })
-        await channels[0].edit(overwrites = channels[0].overwrites)
+        if not channels:
+            channels.append(ctx.channel)
+
+        if len(channels) > 1:
+            message = await ctx.send(f"Unlocking channels {emojis.fro}")
+
+        for channel in channels:
+            channel_overwrites = channel.overwrites
+            
+            everyone_perm_overwrite = channel.overwrites.get(
+                ctx.guild.default_role,
+                PermissionOverwrite()
+            )
+            bot_perm_overwrite = channel_overwrites.get(
+                ctx.guild.me, PermissionOverwrite()
+            )
+            bot_perm_overwrite.send_messages = True
+            everyone_perm_overwrite.send_messages = True
+
+            channel_overwrites.update({
+                ctx.guild.me: bot_perm_overwrite,
+                ctx.guild.default_role: everyone_perm_overwrite
+            })
+            try:
+                await channel.edit(overwrites = channel_overwrites)
+                unlocked_channels += channel.mention + ' '
+            except Exception as e:
+                print_exception(e,e,e.__traceback__)
+                failed_to_unlock += channel.mention + ' '
+
+        if message:
+            if unlocked_channels:
+                response = f"Unlocked the following channels ➡️ {unlocked_channels} ✅\n"
+            if failed_to_unlock:
+                response += f"Failed to unlock the following channels ➡️ {failed_to_unlock} ❌"
+            await message.edit(response)
+
+        elif not message and failed_to_unlock:
+            await ctx.send(f"Failed to unlock {failed_to_unlock} ❌")
+
+        else:
+            await ctx.react("✅")
 
     @commands.command()
     @commands.has_guild_permissions(manage_roles = True)
