@@ -76,6 +76,13 @@ class MusicPlayer(View):
 
         await interaction.response.send_message("Skipped: {}".format(track.title), ephemeral = True)
 
+    @button(custom_id = "REPEAT", style = ButtonSyle.blurple, emoji = "🔁")
+    async def repeat_button(self, button, interaction):
+        player = self.player
+        player.repeat = not player.repeat
+
+        await interaction.response.send_message("🔁 | Repeat " + ("enabled" if player.repeat else "disabled"), ephemeral = True)
+
     async def edit_player(self):
         embed = Embed(title = "Music Player", colour = Colour.fuchsia())
 
