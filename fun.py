@@ -17,6 +17,7 @@ from wavelink import Player, WaitQueue
 from utils import CustomContext
 from time import time
 from re import sub
+from asyncio import sleep
 
 import gtts
 
@@ -174,11 +175,14 @@ class Fun(commands.Cog):
     async def away_from_keyboard(self, ctx: CustomContext, message: str = ""):
         
         message = sub(r"<@!?([0-9]+)>", "", message)
+        
+        await ctx.send("{}, I set your AFK, see you later!\nGiving you 30 seconds to say goodbye to your friends before going!".format(ctx.author.mention))
+        
+        await sleep(30)
 
         self.afk_people.update(
             {ctx.author.id: [time(), message, ctx.message.id]}
         )
-        await ctx.send("{}, I set your AFK, see you later!".format(ctx.author.mention))
 
     @commands.Cog.listener("on_message")
     async def on_message(self, message: Message):
